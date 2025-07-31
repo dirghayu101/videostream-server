@@ -6,9 +6,7 @@ Create a RESTful API backend for a Digital Video Store Web Application using Spr
 
 ## Submission Requirements
 
-- [ ] Source code and GitHub link uploaded to Blackboard
-- [ ] Virtual "in-person" demonstration required
-- [ ] Must demonstrate foundational Spring Boot concepts knowledge
+- [ ] Source code and GitHub link uploaded to the Blackboard
 
 ## Technical Requirements
 
