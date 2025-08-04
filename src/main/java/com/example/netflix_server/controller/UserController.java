@@ -4,10 +4,13 @@ import com.example.netflix_server.dto.ApiResponse;
 import com.example.netflix_server.dto.UserRegistrationRequest;
 import com.example.netflix_server.dto.UserResponse;
 import com.example.netflix_server.service.UserService;
+import com.example.netflix_server.service.AuthService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -20,6 +23,9 @@ public class UserController {
     // Autowired provides access to UserService methods.
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private AuthService authService;
     
     /**
      * Health check endpoint
@@ -53,7 +59,7 @@ public class UserController {
     }
     
     /**
-     * Get a specific user by ID
+     * Get a specific user by ID (Protected - requires authentication)
      * GET /api/v1/users/{userId}
      * 
      * @param userId the user ID
@@ -61,6 +67,10 @@ public class UserController {
      */
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String userId) {
+        
+        // Get authenticated user email from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedEmail = authentication.getName();
         
         // Validate userId is not empty/null
         if (userId == null || userId.trim().isEmpty()) {
@@ -76,6 +86,13 @@ public class UserController {
                 .body(ApiResponse.error("Invalid user ID format"));
         }
         
+        // Check if authenticated user can access this user data
+        if (!authService.canAccessUserData(authenticatedEmail, userId)) {
+            return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("Access denied: You can only access your own data"));
+        }
+        
         UserResponse userResponse = userService.getUserById(userId);
         
         return ResponseEntity
@@ -84,7 +101,7 @@ public class UserController {
     }
     
     /**
-     * Get a specific user by email
+     * Get a specific user by email (Protected - requires authentication)
      * GET /api/v1/users/email/{email}
      * 
      * @param email the user email
@@ -93,11 +110,22 @@ public class UserController {
     @GetMapping("/email/{email}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable String email) {
         
+        // Get authenticated user email from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedEmail = authentication.getName();
+        
         // Validate email is not empty/null
         if (email == null || email.trim().isEmpty()) {
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Email cannot be empty"));
+        }
+        
+        // Check if authenticated user can access this user data
+        if (!authService.canAccessUserDataByEmail(authenticatedEmail, email)) {
+            return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("Access denied: You can only access your own data"));
         }
         
         UserResponse userResponse = userService.getUserByEmail(email);
