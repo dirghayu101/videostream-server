@@ -79,10 +79,12 @@ build/
 .devtools/
 
 # Application specific - Spring Boot configuration files
-application.properties
 application-local.properties
 application-dev.properties
 application-prod.properties
+
+# Keep template file in repo for reference
+!application-template.properties
 
 # Logs
 logs/

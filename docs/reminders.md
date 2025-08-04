@@ -1,0 +1,1 @@
+Take care of userProfileEndpoint which will show the current logged in user details/profile.
